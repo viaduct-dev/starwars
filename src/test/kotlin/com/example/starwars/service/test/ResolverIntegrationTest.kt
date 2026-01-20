@@ -20,6 +20,7 @@ import viaduct.api.grts.Species
  * These tests cover queries and mutations across multiple resolvers,
  * ensuring end-to-end functionality of the GraphQL API.
  */
+// tag::resolver_base_test[10]
 @MicronautTest
 class ResolverIntegrationTest {
     @Inject

@@ -7,8 +7,6 @@ plugins {
 
 viaductModule {
     modulePackageSuffix.set("universe")
-    // Disable automatic BOM/dependency injection - we manage dependencies explicitly
-    applyBOM.set(false)
 }
 
 dependencies {

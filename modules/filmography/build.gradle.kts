@@ -7,8 +7,6 @@ plugins {
 
 viaductModule {
     modulePackageSuffix.set("filmography")
-    // Disable automatic BOM/dependency injection - we manage dependencies explicitly
-    applyBOM.set(false)
 }
 
 dependencies {

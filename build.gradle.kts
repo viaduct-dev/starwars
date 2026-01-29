@@ -9,8 +9,6 @@ plugins {
 viaductApplication {
     grtPackageName.set("viaduct.api.grts")
     modulePackagePrefix.set("com.example.starwars")
-    // Disable automatic BOM/dependency injection - we manage dependencies explicitly
-    applyBOM.set(false)
 }
 
 micronaut {
@@ -48,6 +46,8 @@ dependencies {
     runtimeOnly(project(":modules:filmography"))
     runtimeOnly(project(":modules:universe"))
 
+    // Import JUnit BOM to control all JUnit versions consistently
+    testImplementation(enforcedPlatform(libs.junit.bom))
     testImplementation(libs.micronaut.test.kotest5)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj.core)

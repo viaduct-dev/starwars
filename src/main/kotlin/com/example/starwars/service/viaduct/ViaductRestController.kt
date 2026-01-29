@@ -1,7 +1,6 @@
 package com.example.starwars.service.viaduct
 
 import com.example.starwars.common.SecurityAccessContext
-import graphql.ExecutionResult
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
@@ -10,6 +9,7 @@ import io.micronaut.http.annotation.Header
 import io.micronaut.http.annotation.Post
 import kotlinx.coroutines.future.await
 import viaduct.service.api.ExecutionInput
+import viaduct.service.api.ExecutionResult
 import viaduct.service.api.SchemaId
 import viaduct.service.api.Viaduct
 
@@ -45,14 +45,14 @@ class ViaductRestController(
         @Body request: Map<String, Any>,
         @Header(SCOPES_HEADER) scopesHeader: String?,
         @Header("security-access") securityAccess: String?
-    ): HttpResponse<Map<String, Any>> {
+    ): HttpResponse<Map<String, Any?>> {
         securityAccessService.setSecurityAccess(securityAccess)
         val executionInput = createExecutionInput(request)
         // tag::run_query[7] Runs the query example
         val scopes = parseScopes(scopesHeader)
         val schemaId = determineSchemaId(scopes)
         val result = viaduct.executeAsync(executionInput, schemaId).await()
-        return HttpResponse.status<Map<String, Any>>(statusCode(result)).body(result.toSpecification())
+        return HttpResponse.status<Map<String, Any?>>(statusCode(result)).body(result.toSpecification())
     }
 
     // tag::parse_scopes[7] Parse scopes example
@@ -103,7 +103,7 @@ class ViaductRestController(
      */
     private fun statusCode(result: ExecutionResult) =
         when {
-            result.isDataPresent && result.errors.isNotEmpty() -> HttpStatus.BAD_REQUEST
+            result.errors.isNotEmpty() -> HttpStatus.BAD_REQUEST
             else -> HttpStatus.OK
         }
 }

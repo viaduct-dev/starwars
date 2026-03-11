@@ -91,9 +91,18 @@ extend type Query @scope(to: ["default"]) {
   """
   All films
   """
-  allFilms(limit: Int): [Film]
-    @resolver
-    @backingData(class: "com.example.starwars.modules.filmography.films.queries.AllFilmsQueryResolver")
+  allFilms(limit: Int): [Film] @resolver
+  """
+  All films as a paginated connection (Relay-style cursor pagination).
+  Use `first` to set the page size and `after` to page forward from a cursor.
+  The connection also exposes `totalCount` for the total number of films.
+  """
+  allFilmsConnection(
+    "Maximum number of films to return."
+    first: Int
+    "Cursor to start fetching after (exclusive, for forward pagination)."
+    after: String
+  ): FilmsConnection @resolver
 }
 
 # tag::films_connection_example[13] Example of @connection directive for Films

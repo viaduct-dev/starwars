@@ -85,6 +85,15 @@ type Film implements Node @scope(to: ["default"]) @resolver {
   Main characters in this film (batch resolver example)
   """
   mainCharacters: [Character] @resolver
+
+  """
+  Character IDs fetched once from the film-character relationship store.
+  Shared by the characters and characterCountSummary resolvers so both
+  fields avoid making separate findCharactersByFilmId calls.
+  """
+  castData: BackingData
+    @resolver
+    @backingData(class: "com.example.starwars.modules.filmography.films.models.FilmCastData")
 }
 
 extend type Query @scope(to: ["default"]) {

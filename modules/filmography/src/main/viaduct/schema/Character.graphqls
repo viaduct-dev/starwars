@@ -139,11 +139,7 @@ extend type Query @scope(to: ["default"]) {
     first: Int
     "Cursor to start fetching after (exclusive, for forward pagination)."
     after: String
-  ): CharactersConnection
-    @resolver
-    @backingData(
-      class: "com.example.starwars.modules.filmography.characters.queries.AllCharactersConnectionQueryResolver"
-    )
+  ): CharactersConnection @resolver
 }
 
 # tag::connection_example[11] Example of @connection directive

@@ -4,7 +4,6 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import viaduct.service.BasicViaductFactory
 import viaduct.service.SchemaRegistrationInfo
-import viaduct.service.TenantRegistrationInfo
 import viaduct.service.api.SchemaId
 import viaduct.service.api.Viaduct
 import viaduct.service.toSchemaScopeInfo
@@ -17,24 +16,20 @@ val EXTRAS_SCHEMA_ID = SchemaId.Scoped("publicSchemaWithExtras", setOf(DEFAULT_S
 // tag::viaduct_configuration[20]
 @Factory
 class ViaductConfiguration(
-    val micronautTenantCodeInjector: MicronautTenantCodeInjector
+    val micronautCodeInjector: MicronautCodeInjector
 ) {
     @Bean
     fun providesViaduct(): Viaduct {
-        return BasicViaductFactory.create(
+        return BasicViaductFactory.createFromResource(
             // tag::schema_registration[11]
             schemaRegistrationInfo = SchemaRegistrationInfo(
                 scopes = listOf(
                     DEFAULT_SCHEMA_ID.toSchemaScopeInfo(),
                     EXTRAS_SCHEMA_ID.toSchemaScopeInfo(),
                 )
-                // grtPackagePrefix and grtResourcesIncluded not set - using defaults
             ),
             // end::schema_registration
-            tenantRegistrationInfo = TenantRegistrationInfo(
-                tenantPackagePrefix = "com.example.starwars",
-                tenantCodeInjector = micronautTenantCodeInjector
-            )
+            tenantCodeInjector = micronautCodeInjector,
         )
     }
 }

@@ -2,6 +2,10 @@ package com.example.starwars.service.viaduct
 
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
+import jakarta.inject.Singleton
+import viaduct.engine.api.spi.ProxyResolverFactory
+import viaduct.remote.config.RemoteResolverConfig
+import viaduct.remote.config.RemoteResolverInitializer
 import viaduct.service.BasicViaductFactory
 import viaduct.service.SchemaRegistrationInfo
 import viaduct.service.api.SchemaId
@@ -16,11 +20,21 @@ val EXTRAS_SCHEMA_ID = SchemaId.Scoped("publicSchemaWithExtras", setOf(DEFAULT_S
 // tag::viaduct_configuration[20]
 @Factory
 class ViaductConfiguration(
-    val micronautCodeInjector: MicronautCodeInjector
+    val tenantModuleBootstrapper: MicronautTenantModuleBootstrapper,
 ) {
+    // @Singleton so the proxy-factory bean below sees the same instance Micronaut
+    // calls close() on; without it the bean defaults to prototype scope and the
+    // factory binds to a different initializer than the one being closed.
+    @Singleton
+    @Bean(preDestroy = "close")
+    fun remoteResolverInitializer(): RemoteResolverInitializer = RemoteResolverInitializer(RemoteResolverConfig.fromEnvironment())
+
     @Bean
-    fun providesViaduct(): Viaduct {
-        return BasicViaductFactory.createFromResource(
+    fun provideProxyResolverFactory(initializer: RemoteResolverInitializer): ProxyResolverFactory = initializer.initialize()
+
+    @Bean
+    fun providesViaduct(proxyResolverFactory: ProxyResolverFactory): Viaduct =
+        BasicViaductFactory.createFromResource(
             // tag::schema_registration[11]
             schemaRegistrationInfo = SchemaRegistrationInfo(
                 scopes = listOf(
@@ -29,7 +43,7 @@ class ViaductConfiguration(
                 )
             ),
             // end::schema_registration
-            tenantCodeInjector = micronautCodeInjector,
+            tenantModuleBootstrapper = tenantModuleBootstrapper,
+            proxyResolverFactory = proxyResolverFactory,
         )
-    }
 }

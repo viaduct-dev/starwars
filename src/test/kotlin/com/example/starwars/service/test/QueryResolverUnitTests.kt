@@ -1,4 +1,4 @@
-@file:Suppress("ForbiddenImport", "DEPRECATION")
+@file:Suppress("ForbiddenImport")
 
 package com.example.starwars.service.test
 
@@ -37,16 +37,11 @@ import viaduct.api.grts.Query_AllVehicles_Arguments
 import viaduct.api.grts.Query_SearchCharacter_Arguments
 import viaduct.api.grts.Species
 import viaduct.api.grts.Vehicle
+import viaduct.api.testing.ResolverTestBase
 import viaduct.apiannotations.ExperimentalApi
-import viaduct.engine.SchemaFactory
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.execution.DefaultCoroutineInterop
-import viaduct.tenant.testing.DefaultAbstractResolverTestBase
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalApi::class)
-class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
-    override fun getSchema(): ViaductSchema = SchemaFactory(DefaultCoroutineInterop).fromResources()
-
+class QueryResolverUnitTests : ResolverTestBase() {
     lateinit var characterRepository: CharacterRepository
     lateinit var filmsRepository: FilmsRepository
     lateinit var speciesRepository: SpeciesRepository
@@ -68,18 +63,13 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val reference = characterRepository.findAll().first()
             val resolver = SearchCharacterQueryResolver(characterRepository)
 
-            val args = Query_SearchCharacter_Arguments.Builder(context)
-                .search(
-                    CharacterSearchInput.Builder(context)
-                        .byName(reference.name.substring(0, 2))
-                        .build()
-                )
-                .build()
+            val args = Query_SearchCharacter_Arguments.of(context) {
+                search(CharacterSearchInput.of(context) { byName(reference.name.substring(0, 2)) })
+            }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             result!!
@@ -93,40 +83,32 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val reference = characterRepository.findAll().first()
             val resolver = SearchCharacterQueryResolver(characterRepository)
 
-            val gid = context.globalIDFor(Character.Reflection, reference.id)
+            val gid = globalIDFor(Character.Reflection, reference.id)
 
-            val args = Query_SearchCharacter_Arguments.Builder(context)
-                .search(
-                    CharacterSearchInput.Builder(context)
-                        .byId(gid)
-                        .build()
-                )
-                .build()
+            val args = Query_SearchCharacter_Arguments.of(context) {
+                search(CharacterSearchInput.of(context) { byId(gid) })
+            }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(reference.name, result!!.getName())
         }
 
-    // tag::test_limit_example[23] Test limit example
+    // tag::test_limit_example[19] Test limit example
     @Test
     fun `allCharacters respects limit and maps fields`(): Unit =
         runBlocking {
             val limit = 3
             val resolver = AllCharactersQueryResolver(characterRepository)
 
-            val args = Query_AllCharacters_Arguments.Builder(context)
-                .limit(limit)
-                .build()
+            val args = Query_AllCharacters_Arguments.of(context) { limit(limit) }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(limit, result!!.size)
@@ -142,14 +124,11 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val limit = 2
             val resolver = AllFilmsQueryResolver(filmsRepository)
 
-            val args = Query_AllFilms_Arguments.Builder(context)
-                .limit(limit)
-                .build()
+            val args = Query_AllFilms_Arguments.of(context) { limit(limit) }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(limit, result!!.size)
@@ -165,14 +144,11 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val limit = 4
             val resolver = AllPlanetsQueryResolver(planetsRepository)
 
-            val args = Query_AllPlanets_Arguments.Builder(context)
-                .limit(limit)
-                .build()
+            val args = Query_AllPlanets_Arguments.of(context) { limit(limit) }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(limit, result!!.size)
@@ -186,14 +162,11 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val limit = 1
             val resolver = AllSpeciesQueryResolver(speciesRepository)
 
-            val args = Query_AllSpecies_Arguments.Builder(context)
-                .limit(limit)
-                .build()
+            val args = Query_AllSpecies_Arguments.of(context) { limit(limit) }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(limit, result!!.size)
@@ -208,14 +181,11 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val limit = 1
             val resolver = AllVehiclesQueryResolver(vehiclesRepository)
 
-            val args = Query_AllVehicles_Arguments.Builder(context)
-                .limit(limit)
-                .build()
+            val args = Query_AllVehicles_Arguments.of(context) { limit(limit) }
 
-            val result = runFieldResolver(
-                resolver = resolver,
+            val result = runFieldResolver(resolver) {
                 arguments = args
-            )
+            }
 
             assertNotNull(result)
             assertEquals(limit, result!!.size)
@@ -232,27 +202,24 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val resolver = VehicleNodeResolver(vehiclesRepository)
 
             // Create global ID for the vehicle
-            val vehicleGlobalId = context.globalIDFor(Vehicle.Reflection, ref.id)
+            val vehicleGlobalId = globalIDFor(Vehicle.Reflection, ref.id)
 
             // Use runNodeResolver to fetch vehicle
-            val result = runNodeResolver(resolver, vehicleGlobalId)
+            val result = runNodeResolver(resolver) { id = vehicleGlobalId }
 
             assertNotNull(result)
             assertEquals(ref.name, result.getName())
         }
 
-    // tag::test_node_resolver_example[14] Test node resolver example
+    // tag::test_node_resolver_example[12] Test node resolver example
     @Test
     fun `film by id returns the correct Film using node resolver`(): Unit =
         runBlocking {
             val ref = filmsRepository.getAllFilms().first()
-            val resolver = FilmNodeResolver(filmsRepository)
 
-            // Create global ID for the film
-            val filmGlobalId = context.globalIDFor(Film.Reflection, ref.id)
-
-            // Use runNodeResolver to fetch film
-            val result = runNodeResolver(resolver, filmGlobalId)
+            val result = runNodeResolver(FilmNodeResolver(filmsRepository)) {
+                id = globalIDFor(Film.Reflection, ref.id)
+            }
 
             assertNotNull(result)
             assertEquals(ref.title, result.getTitle())
@@ -264,10 +231,10 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val resolver = PlanetNodeResolver(planetsRepository)
 
             // Create global ID for the planet
-            val planetGlobalId = context.globalIDFor(Planet.Reflection, "1")
+            val planetGlobalId = globalIDFor(Planet.Reflection, "1")
 
             // Use runNodeResolver to fetch planet
-            val result = runNodeBatchResolver(resolver, listOf(planetGlobalId))
+            val result = runNodeBatchResolver(resolver) { ids = listOf(planetGlobalId) }
 
             assertNotNull(result)
             assertEquals("Tatooine", result.first().get().getName())
@@ -280,25 +247,24 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val resolver = SpeciesNodeQueryResolver(speciesRepository)
 
             // Create global ID for the species
-            val speciesGlobalId = context.globalIDFor(Species.Reflection, ref.id)
+            val speciesGlobalId = globalIDFor(Species.Reflection, ref.id)
 
             // Use runNodeResolver to fetch species
-            val result = runNodeBatchResolver(resolver, listOf(speciesGlobalId))
+            val result = runNodeBatchResolver(resolver) { ids = listOf(speciesGlobalId) }
 
             assertNotNull(result)
             assertEquals(ref.name, result.first().get().getName())
         }
 
-    @OptIn(ExperimentalApi::class)
     @Test
     fun `allCharactersConnection paginates forward and reports correct page info`(): Unit =
         runBlocking {
             val resolver = AllCharactersConnectionQueryResolver(characterRepository)
 
             // Request first 3 of 5 characters
-            val firstPageArgs = Query_AllCharactersConnection_Arguments.Builder(context).first(3).build()
+            val firstPageArgs = Query_AllCharactersConnection_Arguments.of(context) { first(3) }
 
-            val firstPage = runFieldResolver(resolver = resolver, arguments = firstPageArgs)
+            val firstPage = runFieldResolver(resolver) { arguments = firstPageArgs }
 
             assertNotNull(firstPage)
             firstPage!!
@@ -307,9 +273,12 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             assertNotNull(endCursor)
 
             // Request next 3 from endCursor — only 2 characters remain
-            val secondPageArgs = Query_AllCharactersConnection_Arguments.Builder(context).first(3).after(endCursor).build()
+            val secondPageArgs = Query_AllCharactersConnection_Arguments.of(context) {
+                first(3)
+                after(endCursor)
+            }
 
-            val secondPage = runFieldResolver(resolver = resolver, arguments = secondPageArgs)
+            val secondPage = runFieldResolver(resolver) { arguments = secondPageArgs }
 
             assertNotNull(secondPage)
             assertEquals(2, secondPage!!.getEdges()!!.size)

@@ -4,8 +4,8 @@ import com.example.starwars.filmography.resolverbases.QueryResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterBuilder
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
 import jakarta.inject.Inject
-import viaduct.api.Resolver
 import viaduct.api.grts.CharactersConnection
+import viaduct.api.resolver.Resolver
 import viaduct.apiannotations.ExperimentalApi
 
 /**
@@ -42,8 +42,8 @@ class AllCharactersConnectionQueryResolver
     ) : QueryResolvers.AllCharactersConnection() {
         override suspend fun resolve(ctx: Context): CharactersConnection? {
             val allCharacters = characterRepository.findAll()
-            return CharactersConnection.Builder(ctx)
-                .fromList(allCharacters) { CharacterBuilder(ctx).build(it) }
-                .build()
+            return CharactersConnection.of(ctx) {
+                fromList(allCharacters) { CharacterBuilder(ctx).build(it) }
+            }
         }
     }

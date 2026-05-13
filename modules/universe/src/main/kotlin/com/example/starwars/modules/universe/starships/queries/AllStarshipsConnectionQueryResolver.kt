@@ -4,8 +4,8 @@ import com.example.starwars.modules.universe.starships.models.StarshipBuilder
 import com.example.starwars.modules.universe.starships.models.StarshipsRepository
 import com.example.starwars.universe.resolverbases.QueryResolvers
 import jakarta.inject.Inject
-import viaduct.api.Resolver
 import viaduct.api.grts.StarshipsConnection
+import viaduct.api.resolver.Resolver
 import viaduct.apiannotations.ExperimentalApi
 
 /**
@@ -65,8 +65,8 @@ class AllStarshipsConnectionQueryResolver
             val hasNextPage = slicePlusOne.size > limit
 
             // fromSlice takes at most `limit` items, encodes cursors, and sets PageInfo.
-            return StarshipsConnection.Builder(ctx)
-                .fromSlice(slicePlusOne, hasNextPage) { StarshipBuilder(ctx).build(it) }
-                .build()
+            return StarshipsConnection.of(ctx) {
+                fromSlice(slicePlusOne, hasNextPage) { StarshipBuilder(ctx).build(it) }
+            }
         }
     }

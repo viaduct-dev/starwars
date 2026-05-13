@@ -4,7 +4,7 @@ import com.example.starwars.filmography.resolverbases.CharacterResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterFilmsRepository
 import jakarta.inject.Inject
 import viaduct.api.FieldValue
-import viaduct.api.Resolver
+import viaduct.api.resolver.Resolver
 
 /**
  * **Simple Batch Aggregation** for counting operations example.
@@ -39,7 +39,7 @@ import viaduct.api.Resolver
  * ## Efficiency
  * Instead of N individual count operations, performs one batch lookup and maps results.
  */
-// tag::film_count_batch_resolver[20] FilmCountBatchResolver
+// tag::film_count_batch_resolver[25] FilmCountBatchResolver
 @Resolver(objectValueFragment = "fragment _ on Character { id }")
 class CharacterFilmCountResolver
     @Inject

@@ -4,10 +4,10 @@ import com.example.starwars.modules.universe.species.models.SpeciesBuilder
 import com.example.starwars.modules.universe.species.models.SpeciesRepository
 import com.example.starwars.universe.resolverbases.QueryResolvers
 import jakarta.inject.Inject
-import viaduct.api.Resolver
-import viaduct.api.connection.OffsetCursor
 import viaduct.api.grts.SpeciesConnection
 import viaduct.api.grts.SpeciesEdge
+import viaduct.api.resolver.Resolver
+import viaduct.api.types.OffsetCursor
 import viaduct.apiannotations.ExperimentalApi
 
 /**
@@ -83,14 +83,14 @@ class AllSpeciesConnectionQueryResolver
 
             val edges =
                 slicePlusOne.take(offsetLimit.limit).mapIndexed { idx, species ->
-                    SpeciesEdge.Builder(ctx)
-                        .node(SpeciesBuilder(ctx).build(species))
-                        .cursor(OffsetCursor.fromOffset(offsetLimit.offset + idx).value)
-                        .build()
+                    SpeciesEdge.of(ctx) {
+                        node(SpeciesBuilder(ctx).build(species))
+                        cursor(OffsetCursor.fromOffset(offsetLimit.offset + idx).value)
+                    }
                 }
 
-            return SpeciesConnection.Builder(ctx)
-                .fromEdges(edges, hasNextPage = hasNextPage, hasPreviousPage = hasPreviousPage)
-                .build()
+            return SpeciesConnection.of(ctx) {
+                fromEdges(edges, hasNextPage = hasNextPage, hasPreviousPage = hasPreviousPage)
+            }
         }
     }

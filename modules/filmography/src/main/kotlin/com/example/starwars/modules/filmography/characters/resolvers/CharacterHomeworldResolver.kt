@@ -4,9 +4,9 @@ import com.example.starwars.filmography.resolverbases.CharacterResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
 import jakarta.inject.Inject
 import viaduct.api.FieldValue
-import viaduct.api.Resolver
 import viaduct.api.context.globalIDFor
 import viaduct.api.grts.Planet
+import viaduct.api.resolver.Resolver
 
 /**
  * This ia a basic **Batch Resolution** to solving the N+1 query problem.
@@ -45,7 +45,7 @@ import viaduct.api.grts.Planet
  *
  * For 100 characters: 101 queries → 2 queries (50x improvement)
  */
-// tag::resolver_example[35] Resolver example
+// tag::resolver_example[39] Resolver example
 @Resolver(
     objectValueFragment = "fragment _ on Character { id }"
 )

@@ -4,8 +4,8 @@ import com.example.starwars.filmography.resolverbases.QueryResolvers
 import com.example.starwars.modules.filmography.films.models.FilmBuilder
 import com.example.starwars.modules.filmography.films.models.FilmsRepository
 import jakarta.inject.Inject
-import viaduct.api.Resolver
 import viaduct.api.grts.FilmsConnection
+import viaduct.api.resolver.Resolver
 import viaduct.apiannotations.ExperimentalApi
 
 /**
@@ -44,9 +44,9 @@ class AllFilmsConnectionQueryResolver
     ) : QueryResolvers.AllFilmsConnection() {
         override suspend fun resolve(ctx: Context): FilmsConnection? {
             val allFilms = filmsRepository.getAllFilms()
-            return FilmsConnection.Builder(ctx)
-                .totalCount(allFilms.size)
-                .fromList(allFilms) { FilmBuilder(ctx).build(it) }
-                .build()
+            return FilmsConnection.of(ctx) {
+                totalCount(allFilms.size)
+                fromList(allFilms) { FilmBuilder(ctx).build(it) }
+            }
         }
     }

@@ -1,4 +1,4 @@
-@file:Suppress("ForbiddenImport", "DEPRECATION")
+@file:Suppress("ForbiddenImport")
 
 package com.example.starwars.service.test
 
@@ -13,13 +13,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import viaduct.api.globalid.GlobalIDImpl
+import viaduct.api.globalid.GlobalID
 import viaduct.api.grts.Film
+import viaduct.api.testing.ResolverTestBase
 import viaduct.apiannotations.ExperimentalApi
-import viaduct.engine.SchemaFactory
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.execution.DefaultCoroutineInterop
-import viaduct.tenant.testing.DefaultAbstractResolverTestBase
 
 /**
  * Integration tests for custom field resolvers on the Film type.
@@ -31,9 +28,7 @@ import viaduct.tenant.testing.DefaultAbstractResolverTestBase
  * are located in QueryResolverUnitTests.kt.
  */
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalApi::class)
-class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
-    override fun getSchema(): ViaductSchema = SchemaFactory(DefaultCoroutineInterop).fromResources()
-
+class FilmResolverUnitTests : ResolverTestBase() {
     private lateinit var filmCharactersRepository: FilmCharactersRepository
 
     @BeforeEach
@@ -46,12 +41,9 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         runBlocking {
             val resolver = FilmDisplayTitleResolver()
 
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .title("Star Wars: A New Hope")
-                    .build(),
-            )
+            val result = runFieldResolver(resolver) {
+                objectValue = Film.of(context) { title("Star Wars: A New Hope") }
+            }
 
             assertEquals("Star Wars: A New Hope", result)
         }
@@ -61,14 +53,13 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         runBlocking {
             val resolver = FilmSummaryResolver()
 
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .title("The Empire Strikes Back")
-                    .episodeID(5)
-                    .director("Irvin Kershner")
-                    .build(),
-            )
+            val result = runFieldResolver(resolver) {
+                objectValue = Film.of(context) {
+                    title("The Empire Strikes Back")
+                    episodeID(5)
+                    director("Irvin Kershner")
+                }
+            }
 
             assertEquals("Episode 5: The Empire Strikes Back (Directed by Irvin Kershner)", result)
         }
@@ -78,15 +69,14 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         runBlocking {
             val resolver = FilmProductionDetailsResolver()
 
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .title("Return of the Jedi")
-                    .director("Richard Marquand")
-                    .producers(listOf("Howard Kazanjian", "George Lucas", "Rick McCallum"))
-                    .releaseDate("1983-05-25")
-                    .build(),
-            )
+            val result = runFieldResolver(resolver) {
+                objectValue = Film.of(context) {
+                    title("Return of the Jedi")
+                    director("Richard Marquand")
+                    producers(listOf("Howard Kazanjian", "George Lucas", "Rick McCallum"))
+                    releaseDate("1983-05-25")
+                }
+            }
 
             assertEquals(
                 "Return of the Jedi was released on 1983-05-25, directed by Richard Marquand and produced by Howard Kazanjian, George Lucas, Rick McCallum",
@@ -99,15 +89,14 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         runBlocking {
             val resolver = FilmProductionDetailsResolver()
 
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .title("Rogue One")
-                    .director("Gareth Edwards")
-                    .producers(null) // triggers "Unknown producers"
-                    .releaseDate("2016-12-16")
-                    .build(),
-            )
+            val result = runFieldResolver(resolver) {
+                objectValue = Film.of(context) {
+                    title("Rogue One")
+                    director("Gareth Edwards")
+                    producers(null) // triggers "Unknown producers"
+                    releaseDate("2016-12-16")
+                }
+            }
 
             assertEquals(
                 "Rogue One was released on 2016-12-16, directed by Gareth Edwards and produced by Unknown producers",
@@ -120,12 +109,12 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         runBlocking {
             val resolver = FilmCastDataResolver(filmCharactersRepository)
 
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .id(GlobalIDImpl(Film.Reflection, "1"))
-                    .build(),
-            )
+            val result = runFieldResolver(resolver) {
+                objectValue = Film.of(context) {
+                    id(GlobalID(Film.Reflection, "1"))
+                    title("A New Hope")
+                }
+            }
 
             assertEquals(FilmCastData(listOf("1", "2", "3", "4", "5")), result)
         }

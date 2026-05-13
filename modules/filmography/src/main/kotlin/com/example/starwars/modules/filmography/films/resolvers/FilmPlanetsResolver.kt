@@ -4,9 +4,9 @@ import com.example.starwars.filmography.resolverbases.FilmResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
 import com.example.starwars.modules.filmography.films.models.FilmCharactersRepository
 import jakarta.inject.Inject
-import viaduct.api.Resolver
 import viaduct.api.context.nodeRef
 import viaduct.api.grts.Planet
+import viaduct.api.resolver.Resolver
 
 /**
  * Example of a relationship field resolver in the Film type.
@@ -15,6 +15,7 @@ import viaduct.api.grts.Planet
  *
  * @resolver("fragment _ on Film { id }"): Fragment syntax for accessing film ID
  */
+// tag::resolver_example[18] Single-related-lookup, non-batched
 @Resolver("id")
 class FilmPlanetsResolver
     @Inject

@@ -5,8 +5,8 @@ import com.example.starwars.filmography.resolverbases.MutationResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterBuilder
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
 import jakarta.inject.Inject
-import viaduct.api.Resolver
 import viaduct.api.grts.Character
+import viaduct.api.resolver.Resolver
 
 /**
  * Mutation resolvers for the Star Wars GraphQL API.
@@ -14,7 +14,7 @@ import viaduct.api.grts.Character
  * The Mutation type demonstrates the @scope directive which restricts schema access
  * to specific tenants or contexts. All resolvers here are scoped to "starwars".
  */
-// tag::update-character-name-resolver[20] Example of mutation resolver
+// tag::update-character-name-resolver[25] Example of mutation resolver
 @Resolver
 class UpdateCharacterNameMutation
     @Inject

@@ -4,7 +4,7 @@ import com.example.starwars.filmography.resolverbases.QueryResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterBuilder
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
 import jakarta.inject.Inject
-import viaduct.api.Resolver
+import viaduct.api.resolver.Resolver
 
 /**
  * SearchCharacter Query resolver for the Star Wars GraphQL API.
@@ -20,7 +20,7 @@ import viaduct.api.Resolver
  * Arguments:
  * - search: An object containing optional fields: byName (String), byId (ID), byBirthYear (String).
  */
-// tag::id_of_example[19] Example of idOF usage
+// tag::id_of_example[24] Example of idOF usage
 @Resolver
 class SearchCharacterQueryResolver
     @Inject

@@ -6,11 +6,6 @@ plugins {
     jacoco
 }
 
-viaductApplication {
-    grtPackageName.set("viaduct.api.grts")
-    modulePackagePrefix.set("com.example.starwars")
-}
-
 micronaut {
     runtime("netty")
     testRuntime("junit")
@@ -52,15 +47,11 @@ dependencies {
 
     runtimeOnly(libs.logback.classic)
     implementation(project(":common"))
-    runtimeOnly(project(":modules:filmography"))
-    runtimeOnly(project(":modules:universe"))
 
     // Import JUnit BOM to control all JUnit versions consistently
     testImplementation(enforcedPlatform(libs.junit.bom))
     testImplementation(libs.micronaut.test.kotest5)
     testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj.core)
-
     testRuntimeOnly(libs.junit.platform.launcher)
 
     testImplementation(project(":modules:filmography"))
@@ -69,8 +60,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.assertions.json)
     testImplementation(libs.micronaut.http.client)
-    testImplementation(testFixtures(libs.viaduct.tenant.api))
-    testImplementation(testFixtures(libs.viaduct.tenant.runtime))
+    testImplementation(libs.viaduct.test.fixtures)
 }
 
 application {
@@ -86,4 +76,3 @@ tasks.withType<JavaExec> {
         "--add-opens", "java.base/java.lang=ALL-UNNAMED"
     )
 }
-

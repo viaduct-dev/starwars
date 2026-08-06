@@ -3,6 +3,7 @@ package com.example.starwars.modules.filmography.characters.resolvers
 import com.example.starwars.filmography.resolverbases.NodeResolvers
 import com.example.starwars.modules.filmography.characters.models.CharacterBuilder
 import com.example.starwars.modules.filmography.characters.models.CharacterRepository
+import io.micronaut.context.annotation.Prototype
 import jakarta.inject.Inject
 import viaduct.api.FieldValue
 import viaduct.api.grts.Character
@@ -15,6 +16,7 @@ import viaduct.api.resolver.Resolver
  */
 // tag::node_resolver_example[29] Example of a node resolver
 @Resolver
+@Prototype
 class CharacterNodeResolver
     @Inject
     constructor(
@@ -22,7 +24,7 @@ class CharacterNodeResolver
     ) : NodeResolvers.Character() {
         // Node resolvers can also be batched to optimize multiple requests
         // tag::node_batch_resolver_example[21] Example of a node resolver
-        override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Character>> {
+        override suspend fun batchResolve(contexts: List<Context>): Map<Context, FieldValue<Character>> {
             // Extract all unique character IDs from the contexts
             val characterIds = contexts.map { it.id.internalID }
 
@@ -33,7 +35,7 @@ class CharacterNodeResolver
             }
 
             // For each context gets the character ID and map to the viaduct object
-            return contexts.map { ctx ->
+            return contexts.associateWith { ctx ->
                 val characterId = ctx.id.internalID
                 characters.firstOrNull { it.id == characterId }?.let {
                     FieldValue.ofValue(

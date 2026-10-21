@@ -25,7 +25,7 @@ class FilmSpeciesResolver
         private val filmCharactersRepository: FilmCharactersRepository
     ) : FilmResolvers.Species() {
         override suspend fun resolve(ctx: Context): List<Species?>? {
-            val filmId = ctx.getObjectValue().getId().internalID
+            val filmId = ctx.getObjectValue().getIdOrThrow().internalID
 
             val characterIds = filmCharactersRepository.findCharactersByFilmId(filmId)
 
@@ -33,7 +33,7 @@ class FilmSpeciesResolver
 
             return speciesIds.map {
                 val globalId = ctx.globalIDFor<Species>(it)
-                ctx.nodeRef(globalId)
+                ctx.ref(globalId)
             }
         }
     }

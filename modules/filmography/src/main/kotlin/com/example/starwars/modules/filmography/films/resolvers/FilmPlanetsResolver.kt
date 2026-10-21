@@ -5,7 +5,7 @@ import com.example.starwars.modules.filmography.characters.models.CharacterRepos
 import com.example.starwars.modules.filmography.films.models.FilmCharactersRepository
 import io.micronaut.context.annotation.Prototype
 import jakarta.inject.Inject
-import viaduct.api.context.nodeRef
+import viaduct.api.context.ref
 import viaduct.api.grts.Planet
 import viaduct.api.resolver.Resolver
 
@@ -26,14 +26,14 @@ class FilmPlanetsResolver
         private val filmCharactersRepository: FilmCharactersRepository
     ) : FilmResolvers.Planets() {
         override suspend fun resolve(ctx: Context): List<Planet?>? {
-            val filmId = ctx.getObjectValue().getId().internalID
+            val filmId = ctx.getObjectValue().getIdOrThrow().internalID
 
             val characterIds = filmCharactersRepository.findCharactersByFilmId(filmId)
 
             val planetIds = characterIds.mapNotNull { characterRepository.findById(it)?.homeworldId }.toSet()
 
             return planetIds.map {
-                ctx.nodeRef<Planet>(it)
+                ctx.ref<Planet>(it)
             }
         }
     }

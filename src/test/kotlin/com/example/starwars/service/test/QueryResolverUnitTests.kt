@@ -22,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.api.grts.Character
@@ -37,10 +38,13 @@ import viaduct.api.grts.Query_AllVehicles_Arguments
 import viaduct.api.grts.Query_SearchCharacter_Arguments
 import viaduct.api.grts.Species
 import viaduct.api.grts.Vehicle
+import viaduct.api.select.SelectionSet
 import viaduct.api.testing.ResolverTestBase
 import viaduct.apiannotations.ExperimentalApi
+import viaduct.apiannotations.InternalApi
+import viaduct.errors.UnsetFieldException
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalApi::class, InternalApi::class)
 class QueryResolverUnitTests : ResolverTestBase() {
     lateinit var characterRepository: CharacterRepository
     lateinit var filmsRepository: FilmsRepository
@@ -73,8 +77,8 @@ class QueryResolverUnitTests : ResolverTestBase() {
 
             assertNotNull(result)
             result!!
-            assertEquals(reference.name, result.getName())
-            assertEquals(reference.birthYear, result.getBirthYear())
+            assertEquals(reference.name, result.getNameOrThrow())
+            assertEquals(reference.birthYear, result.getBirthYearOrThrow())
         }
 
     @Test
@@ -94,7 +98,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             }
 
             assertNotNull(result)
-            assertEquals(reference.name, result!!.getName())
+            assertEquals(reference.name, result!!.getNameOrThrow())
         }
 
     // tag::test_limit_example[19] Test limit example
@@ -114,12 +118,12 @@ class QueryResolverUnitTests : ResolverTestBase() {
             assertEquals(limit, result!!.size)
             val ref = characterRepository.findAll().first()
             val first = result.first()!!
-            assertEquals(ref.name, first.getName())
-            assertEquals(ref.birthYear, first.getBirthYear())
+            assertEquals(ref.name, first.getNameOrThrow())
+            assertEquals(ref.birthYear, first.getBirthYearOrThrow())
         }
 
     @Test
-    fun `allFilms respects limit and maps fields`(): Unit =
+    fun `allFilms respects limit and returns node references`(): Unit =
         runBlocking {
             val limit = 2
             val resolver = AllFilmsQueryResolver(filmsRepository)
@@ -134,8 +138,8 @@ class QueryResolverUnitTests : ResolverTestBase() {
             assertEquals(limit, result!!.size)
             val ref = filmsRepository.getAllFilms().first()
             val first = result.first()!!
-            assertEquals(ref.title, first.getTitle())
-            assertEquals(ref.episodeID, first.getEpisodeID())
+            assertEquals(ref.id, first.getIdOrThrow().internalID)
+            assertThrows(UnsetFieldException::class.java) { first.getTitleOrThrow() }
         }
 
     @Test
@@ -153,7 +157,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             assertNotNull(result)
             assertEquals(limit, result!!.size)
             val first = result.first()!!
-            assertEquals("Tatooine", first.getName())
+            assertEquals("Tatooine", first.getNameOrThrow())
         }
 
     @Test
@@ -172,7 +176,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             assertEquals(limit, result!!.size)
             val ref = speciesRepository.findAll().first()
             val first = result.first()!!
-            assertEquals(ref.name, first.getName())
+            assertEquals(ref.name, first.getNameOrThrow())
         }
 
     @Test
@@ -191,8 +195,8 @@ class QueryResolverUnitTests : ResolverTestBase() {
             assertEquals(limit, result!!.size)
             val ref = vehiclesRepository.findAll().first()
             val first = result.first()!!
-            assertEquals(ref.name, first.getName())
-            assertEquals(ref.model, first.getModel())
+            assertEquals(ref.name, first.getNameOrThrow())
+            assertEquals(ref.model, first.getModelOrThrow())
         }
 
     @Test
@@ -208,7 +212,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             val result = runNodeResolver(resolver) { id = vehicleGlobalId }
 
             assertNotNull(result)
-            assertEquals(ref.name, result.getName())
+            assertEquals(ref.name, result.getNameOrThrow())
         }
 
     // tag::test_node_resolver_example[12] Test node resolver example
@@ -219,11 +223,15 @@ class QueryResolverUnitTests : ResolverTestBase() {
 
             val result = runNodeResolver(FilmNodeResolver(filmsRepository)) {
                 id = globalIDFor(Film.Reflection, ref.id)
+                selections = filmSelections("openingCrawl")
             }
 
             assertNotNull(result)
-            assertEquals(ref.title, result.getTitle())
+            assertEquals(ref.openingCrawl, result.getOpeningCrawlOrThrow())
+            assertThrows(UnsetFieldException::class.java) { result.getTitleOrThrow() }
         }
+
+    private fun filmSelections(fields: String): SelectionSet<Film> = mkSelectionSetFactory().selectionsOn(Film.Reflection, fields, emptyMap())
 
     @Test
     fun `planet by id returns the correct Planet using node resolver`(): Unit =
@@ -237,7 +245,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             val result = runNodeBatchResolver(resolver) { ids = listOf(planetGlobalId) }
 
             assertNotNull(result)
-            assertEquals("Tatooine", result.values.first().get().getName())
+            assertEquals("Tatooine", result.values.first().get().getNameOrThrow())
         }
 
     @Test
@@ -253,7 +261,7 @@ class QueryResolverUnitTests : ResolverTestBase() {
             val result = runNodeBatchResolver(resolver) { ids = listOf(speciesGlobalId) }
 
             assertNotNull(result)
-            assertEquals(ref.name, result.values.first().get().getName())
+            assertEquals(ref.name, result.values.first().get().getNameOrThrow())
         }
 
     @Test
@@ -268,8 +276,8 @@ class QueryResolverUnitTests : ResolverTestBase() {
 
             assertNotNull(firstPage)
             firstPage!!
-            assertEquals(3, firstPage.getEdges()!!.size)
-            val endCursor = firstPage.getEdges()!!.last()!!.getCursor()
+            assertEquals(3, firstPage.getEdgesOrThrow()!!.size)
+            val endCursor = firstPage.getEdgesOrThrow()!!.last()!!.getCursorOrThrow()
             assertNotNull(endCursor)
 
             // Request next 3 from endCursor — only 2 characters remain
@@ -281,6 +289,6 @@ class QueryResolverUnitTests : ResolverTestBase() {
             val secondPage = runFieldResolver(resolver) { arguments = secondPageArgs }
 
             assertNotNull(secondPage)
-            assertEquals(2, secondPage!!.getEdges()!!.size)
+            assertEquals(2, secondPage!!.getEdgesOrThrow()!!.size)
         }
 }

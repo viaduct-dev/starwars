@@ -4,7 +4,7 @@ import com.example.starwars.modules.universe.planets.models.PlanetsResidentsRepo
 import com.example.starwars.universe.resolverbases.PlanetResolvers
 import io.micronaut.context.annotation.Prototype
 import jakarta.inject.Inject
-import viaduct.api.context.nodeRef
+import viaduct.api.context.ref
 import viaduct.api.grts.Character
 import viaduct.api.resolver.Resolver
 
@@ -27,14 +27,14 @@ class PlanetResidentsQueryResolver
          */
         override suspend fun resolve(ctx: Context): List<Character>? {
             // Related Planet ID is stored in the ctx object value.
-            val planetId = ctx.getObjectValue().getId().internalID
+            val planetId = ctx.getObjectValue().getIdOrThrow().internalID
 
             // Fetch residents associated with the planet from the repository.
             val residents = planetsResidentsRepository.findResidentsByPlanetId(planetId)
 
             return residents.map {
                 // Request Viaduct to resolve the Character node using the global ID.
-                ctx.nodeRef<Character>(it.characterId)
+                ctx.ref<Character>(it.characterId)
             }
         }
     }

@@ -4,7 +4,7 @@ import com.example.starwars.modules.universe.planets.models.PlanetsFilmsReposito
 import com.example.starwars.universe.resolverbases.PlanetResolvers
 import io.micronaut.context.annotation.Prototype
 import jakarta.inject.Inject
-import viaduct.api.context.nodeRef
+import viaduct.api.context.ref
 import viaduct.api.grts.Film
 import viaduct.api.resolver.Resolver
 
@@ -26,7 +26,7 @@ class PlanetFilmsQueryResolver
          */
         override suspend fun resolve(ctx: Context): List<Film>? {
             // Related Planet ID is stored in the ctx object value.
-            val planetId = ctx.getObjectValue().getId().internalID
+            val planetId = ctx.getObjectValue().getIdOrThrow().internalID
 
             // Fetch films associated with the planet from the repository.
             val films = planetsFilmsRepository.findFilmsByPlanetId(planetId)
@@ -34,7 +34,7 @@ class PlanetFilmsQueryResolver
             // You need to iterate the internal films to request viaduct resolve the Films.
             return films.map {
                 // Request Viaduct to resolve the Film node using the global ID.
-                ctx.nodeRef<Film>(it.filmId)
+                ctx.ref<Film>(it.filmId)
             }
         }
     }
